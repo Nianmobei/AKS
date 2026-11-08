@@ -1,0 +1,2 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {voiceTerms,voiceScore} from './voice-retrieval.mjs';
+test('capability correction retrieves its style family without making every greeting an apology',()=>{const row={tags:'["纠错","能力"]',reason:'先承认误判',original:'我嘴上说过头了'};assert.ok(voiceScore(row,voiceTerms('你刚才不是说能处理本地文件吗'))>0);assert.equal(voiceScore(row,voiceTerms('今天天色很好。')),0);});

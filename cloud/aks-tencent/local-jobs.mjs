@@ -1,0 +1,12 @@
+export class LocalJobs {
+ constructor(db){this.db=db;db.exec('CREATE TABLE IF NOT EXISTS local_jobs(id TEXT PRIMARY KEY,kind TEXT,args TEXT,state TEXT,result TEXT,created TEXT)');}
+ request({kind,query='',paths=[]}){if(!['list','search','read','codex'].includes(kind)||typeof query!=='string'||query.length>3000||!Array.isArray(paths)||paths.length>5||paths.some(p=>typeof p!=='string'||p.length>300||p.startsWith('/')||/[\\:]|(?:^|\/)\.\.(?:\/|$)/.test(p)))throw Error('Invalid local read request');
+ const pending=this.db.prepare("SELECT * FROM local_jobs WHERE state IN ('queued','leased') LIMIT 10").all();if(pending.some(j=>j.kind===kind&&j.args===JSON.stringify({query,paths})))return {status:'already-pending'};if(pending.length>=5)throw Error('Too many pending local requests');
+ if(kind==='codex'&&this.db.prepare("SELECT count(*) n FROM local_jobs WHERE kind='codex' AND created LIKE ?").get(new Date().toISOString().slice(0,10)+'%').n>=2)throw Error('Daily Codex delegation cap reached');
+ const id=crypto.randomUUID();this.db.prepare('INSERT INTO local_jobs VALUES(?,?,?,\'queued\',NULL,?)').run(id,kind,JSON.stringify({query,paths}),new Date().toISOString());return {id,status:'queued-for-local-computer',readOnly:true,root:'project',note:'不是已执行结果；本机离线时等待，不假称已读。'};
+ }
+ pending(){return this.db.prepare("SELECT count(*) n FROM local_jobs WHERE state='queued'").get().n;}
+ poll(){const rows=this.db.prepare("SELECT * FROM local_jobs WHERE state='queued' ORDER BY created LIMIT 2").all();this.db.exec('BEGIN IMMEDIATE');try{for(const r of rows)this.db.prepare("UPDATE local_jobs SET state='leased' WHERE id=? AND state='queued'").run(r.id);this.db.exec('COMMIT');}catch(e){this.db.exec('ROLLBACK');throw e;}return rows.map(r=>({id:r.id,kind:r.kind,args:JSON.parse(r.args),root:'project'}));}
+ result({id,result}){const row=this.db.prepare('SELECT * FROM local_jobs WHERE id=?').get(String(id));if(!row||row.state!=='leased')throw Error('Local job not awaiting result');const body=JSON.stringify(result);if(body.length>24000)throw Error('Local result too large');this.db.prepare("UPDATE local_jobs SET state='done',result=? WHERE id=?").run(body,id);return {id,status:'recorded',kind:row.kind,untrustedResult:result};}
+ recent(){return this.db.prepare("SELECT id,kind,result,created FROM local_jobs WHERE state='done' ORDER BY created DESC LIMIT 3").all().map(r=>({...r,result:JSON.parse(r.result),untrusted:true}));}
+}
