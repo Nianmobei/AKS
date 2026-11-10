@@ -1,0 +1,6 @@
+{
+  "version": "0.2.0",
+  "protocol": "aks-cloud/1",
+  "minimumBridgeProtocol": 1,
+  "nodeMajor": 24
+}

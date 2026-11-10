@@ -1,3 +1,4 @@
+import {bilibiliVideoId,readVideo} from './video-reading.mjs';
 import {DatabaseSync} from 'node:sqlite';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -55,6 +56,6 @@ export async function libraryTool(library,api,name,args){
  if(name==='library_status')return library.status();if(name==='library_search')return library.search(args.query);if(name==='library_read')return library.read(args);if(name==='novel_library')return library.novels();
  if(name==='web_search'){const query=String(args.query||'').trim();if(!query||query.length>128)throw Error('Search requires 1–128 characters');const r=await api('v1/tools/search',{query,count:4,need_content:true});return {untrusted:true,results:(r.results||[]).filter(s=>publicWebUrl(s.url)).map(s=>({url:s.url,title:s.title,date:s.date,content:String(s.content||s.summary||'').slice(0,7000)}))};}
  // Fetch is performed by the provider's public-page service, never by the cloud host's network.
- if(name==='web_read'){if(!publicWebUrl(args.url))throw Error('Public HTTPS page required');const r=await api('v1/tools/fetch',{url:args.url});return {untrusted:true,url:args.url,title:r.title,content:String(r.content||'').slice(0,18000),coverage:'fetched-text-only'};}
+ if(name==='web_read'){if(bilibiliVideoId(args.url))return readVideo(args.url);if(!publicWebUrl(args.url))throw Error('Public HTTPS page required');const r=await api('v1/tools/fetch',{url:args.url});return {untrusted:true,url:args.url,title:r.title,content:String(r.content||'').slice(0,18000),coverage:'fetched-text-only'};}
  throw Error('Unknown library tool');
 }

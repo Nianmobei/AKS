@@ -1,0 +1,35 @@
+{
+  "version": "0.2.0",
+  "authority": "cloud",
+  "deployedAt": "2026-11-10T03:21:11Z",
+  "cloudDirectory": "/opt/aks",
+  "cloudContainer": "aks-aks-1",
+  "cloudManifest": "/opt/aks/release-manifest.json",
+  "rollbackBackup": "/opt/aks/deploy-backups/release-0.2.0-20261110T032111Z",
+  "cloudHealthVerified": true,
+  "localBridge": {
+    "version": "0.2.0",
+    "compatible": true,
+    "verified": true
+  },
+  "policy": {
+    "model": "deepseek-v4-pro",
+    "contextTokens": 24000,
+    "outputTokens": 2600
+  },
+  "validation": {
+    "cloudTests": 67,
+    "passed": 66,
+    "newFailures": 0,
+    "preexistingFailures": [
+      "remaining daily allowance is paced, finite per window, and monthly meter remains binding"
+    ],
+    "localReleaseAndRoutingTestsPassed": 10,
+    "liveModelReplyVerified": true
+  },
+  "limitations": [
+    "QQ disconnected before and after deployment",
+    "Video live subtitle/frame/audio verification not completed"
+  ],
+  "sourceBaseline": "1d298a24e77d74a35082e802511d4b2637fd89cc"
+}

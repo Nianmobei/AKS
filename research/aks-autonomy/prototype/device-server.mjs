@@ -1,9 +1,11 @@
+import {createCloudReleaseReader} from './cloud-release-client.mjs';
 import {execFile} from 'node:child_process';
 import http from 'node:http';import fs from 'node:fs/promises';import path from 'node:path';import {randomUUID,timingSafeEqual} from 'node:crypto';import {fileURLToPath} from 'node:url';import {ConversationClient} from './conversation-client.mjs';
 const here=path.dirname(fileURLToPath(import.meta.url)),root=process.env.AKS_CLOUD_ROOT||path.resolve(here,'../../../cloud/aks-tencent'),client=new ConversationClient({root}),port=Number(process.env.PORT||6220),base='http://127.0.0.1:'+port;
 const token=(await fs.readFile(path.join(root,'secrets/LOCAL_CONVERSATION_TOKEN'),'utf8')).trim();
 const companionClient=new ConversationClient({root,keyName:'aks-codex-worker'});
 const preparedTurns=new Map();
+const readCloudRelease=createCloudReleaseReader((action,payload)=>client.request(action,payload));
 function readLife(){return new Promise((resolve,reject)=>{const exe='C:/Windows/System32/OpenSSH/ssh.exe';const args=['-T','-o','BatchMode=yes','-o','ConnectTimeout=8','-o','StrictHostKeyChecking=yes','-o','UserKnownHostsFile='+path.join(root,'secrets/known_hosts'),'-i',path.join(root,'secrets/aks-desktop-life'),'root@'+(process.env.AKS_SERVER_HOST||'example.invalid'),'life'];execFile(exe,args,{windowsHide:true,timeout:25000,maxBuffer:120000,env:{...process.env,ProgramData:process.env.ProgramData||'C:\\ProgramData'}},(err,out)=>{if(err)return reject(Error('日记通道尚未授权或暂时不可用'));try{const x=JSON.parse(out);if(x.unavailable)throw Error('云端日记暂不可用');resolve(x);}catch(e){reject(e)}});});}
 
 function equal(a,b){const x=Buffer.from(a||''),y=Buffer.from(b||'');return x.length===y.length&&timingSafeEqual(x,y);}
@@ -19,6 +21,7 @@ const server=http.createServer(async(req,res)=>{try{res.setHeader('Cache-Control
  if(req.url==='/companion-api'&&req.method==='POST'){const p=await body(req);if(!['list','status','submit','feedback','approve','deactivate'].includes(p.action))throw Error('Companion action unavailable');res.setHeader('Content-Type','application/json');res.end(JSON.stringify(await companionClient.request(p.action,p.payload||{})));return;}
  if(req.url==='/prepare-turn'&&req.method==='POST'){const p=await body(req);if(typeof p.id!=='string'||p.id.length>180||typeof p.text!=='string'||p.text.length>16000)throw Error('Invalid raw input');for(const [id,t] of preparedTurns)if(Date.now()-t.at>600000)preparedTurns.delete(id);if(preparedTurns.size>200)throw Error('Too many prepared turns');preparedTurns.set(p.id,{text:p.text,at:Date.now()});res.setHeader('Content-Type','application/json');res.end('{"ready":true}');return;}
  if(req.url==='/life'&&req.method==='GET'){res.setHeader('Content-Type','application/json');res.end(JSON.stringify(await readLife()));return;}
+ if(req.url==='/release'&&req.method==='GET'){res.setHeader('Content-Type','application/json');res.end(JSON.stringify(await readCloudRelease()));return;}
  if(req.url==='/avatar'){res.setHeader('Content-Type','application/json');res.end(JSON.stringify(await client.request('avatar')));return;}
  if(req.url==='/v1/models'){res.setHeader('Content-Type','application/json');res.end(JSON.stringify({object:'list',data:[{id:'aks-cloud',object:'model',owned_by:'AKS private cloud'}]}));return;}
  if(req.url==='/v1/chat/completions'&&req.method==='POST'){

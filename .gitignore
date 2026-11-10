@@ -9,3 +9,5 @@ backups/
 *.key
 *.pem
 *.log
+
+dist/
