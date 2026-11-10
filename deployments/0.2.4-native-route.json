@@ -1,0 +1,21 @@
+{
+  "cloudVersion": "0.2.4",
+  "devicePatch": "2026-11-10-native-route",
+  "nativeStatus": {
+    "provider": "aks-cloud",
+    "model": "aks-cloud",
+    "localEndpoint": true,
+    "cardScoped": true,
+    "keyConfigured": true
+  },
+  "validation": {
+    "nativeOpenAIEndpointHttp": 200,
+    "streamCompleted": true,
+    "actualProvider": "apiyi",
+    "actualModel": "gemini-4-argon",
+    "deviceElapsedMs": 9754,
+    "providerElapsedMs": 9086,
+    "fallbackUsed": false
+  },
+  "credentialsEmbedded": false
+}

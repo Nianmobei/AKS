@@ -43,6 +43,15 @@ if(-not $serverText.Contains("req.url==='/model-status'")){
   if(-not $serverText.Contains($marker)){throw 'Model status route marker missing'}
   $serverText=$serverText.Replace($marker,($routeLine.TrimEnd()+"`n"+$marker))
 }
+if(-not $serverText.Contains('nativeStatus=')){
+  $serverText=$serverText.Replace('let lastModelStatus={model:null};',"let lastModelStatus={model:null},nativeStatus={phase:'not-reported'};")
+}
+if(-not $serverText.Contains("req.url==='/native-status'")){
+  $routeLine=($sourceServer -split "`n" | Where-Object {$_.Contains("req.url==='/native-status'")})
+  $marker=" if(req.url==='/model-status'"
+  if(-not $serverText.Contains($marker)){throw 'Native status route marker missing'}
+  $serverText=$serverText.Replace($marker,($routeLine.TrimEnd()+"`n"+$marker))
+}
 Copy-Item -LiteralPath $serverFile -Destination $backupDir
 Copy-Item -LiteralPath $deviceFile -Destination $backupDir
 Copy-Item -LiteralPath (Join-Path $sourceDir 'cloud-release-client.mjs') -Destination $clientDir
