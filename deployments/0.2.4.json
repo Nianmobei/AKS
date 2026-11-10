@@ -1,0 +1,68 @@
+{
+  "version": "0.2.4",
+  "authority": "cloud",
+  "deployedAt": "2026-11-10T09:07:24Z",
+  "streamPatchAt": "2026-11-10T09:28:47Z",
+  "rollbackBackup": "/opt/aks/deploy-backups/release-0.2.4-20261110T090724Z",
+  "streamPatchBackup": "/opt/aks/deploy-backups/release-0.2.4-20261110T092847Z",
+  "cloudHealthVerified": true,
+  "validation": {
+    "cloudTests": 74,
+    "passed": 73,
+    "newFailures": 0,
+    "preexistingFailures": [
+      "remaining daily allowance is paced, finite per window, and monthly meter remains binding"
+    ],
+    "focusedLocalTestsPassed": 8,
+    "liveStream": {
+      "http": 200,
+      "provider": "apiyi",
+      "model": "gemini-4-argon",
+      "deviceElapsedMs": 14244,
+      "providerElapsedMs": 12883,
+      "headersMs": 12150,
+      "firstContentMs": 12151,
+      "bodyMs": 733,
+      "fallbackUsed": false,
+      "historyMetadataVerified": true
+    }
+  },
+  "probe": [
+    {
+      "name": "minimal_nonstream",
+      "requestBytes": 240,
+      "tlsMs": 371,
+      "elapsedMs": 90014,
+      "result": "timeout_waiting_headers"
+    },
+    {
+      "name": "persona_nonstream",
+      "requestBytes": 8283,
+      "tlsMs": 275,
+      "elapsedMs": 90002,
+      "result": "timeout_waiting_headers"
+    },
+    {
+      "name": "persona_stream_single_tool",
+      "tlsMs": 274,
+      "headersMs": 19352,
+      "elapsedMs": 19722,
+      "status": 200
+    }
+  ],
+  "local": {
+    "desktopBadgeRolledBack": true,
+    "cardRestored": true,
+    "cardBackupExported": true,
+    "tPoseFixedByBundledGoghBinding": true,
+    "cardAndModelRetainedAfterReload": true,
+    "fillLight": {
+      "ambientBefore": 0.22,
+      "ambientAfter": 0.32,
+      "addedLights": 0,
+      "addedShadows": 0,
+      "visuallyVerified": true
+    }
+  },
+  "sourceBaseline": "c62c300b8e0753a1e7cdb9ce9671090b0ea55690"
+}

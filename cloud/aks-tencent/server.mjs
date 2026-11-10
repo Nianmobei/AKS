@@ -1,3 +1,4 @@
+import {measuredJson,recordModel} from './provider-diagnostics.mjs';
 import {createModelRouter,argonCost,argonRequest} from './model-router.mjs';
 import {estimateTokens} from './context-budget.mjs';
 import {cloudPolicy,releaseStatus,release} from './runtime-policy.mjs';
@@ -65,9 +66,9 @@ async function argonApi(body){
  if(!argonKey)throw Error('argon_key_missing');
  body=budgetRequest(body,{inputTokens:policy.contextTokens,outputTokens:policy.outputTokens,reserveTokens:1000});
  const claim=budgetPolicy.reserve(argonCost(estimateTokens(body),body.max_tokens));
- const response=await fetch('https://api.apiyi.com/v1/chat/completions',{method:'POST',headers:{Authorization:'Bearer '+argonKey,'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(policy.chatTimeoutMs)});
- if(!response.ok)throw Error('argon_http_'+response.status);
- const result=await response.json(),input=result.usage?.prompt_tokens??result.usage?.input_tokens,output=result.usage?.completion_tokens??result.usage?.output_tokens;
+ const result=await measuredJson('https://api.apiyi.com/v1/chat/completions',{method:'POST',headers:{Authorization:'Bearer '+argonKey,'Content-Type':'application/json'},body:JSON.stringify(body)},{timeoutMs:policy.chatTimeoutMs});
+ log('argon-transport',{...result._aksTransport,requestBytes:Buffer.byteLength(JSON.stringify(body)),tools:body.tools?.length||0});
+ const input=result.usage?.prompt_tokens??result.usage?.input_tokens,output=result.usage?.completion_tokens??result.usage?.output_tokens;
  if(Number.isSafeInteger(input)&&Number.isSafeInteger(output))budgetPolicy.settle(claim,{input,output,provider:'apiyi',model:'gemini-4-argon',costCny:argonCost(input,output)});
  return result;
 }
@@ -127,6 +128,7 @@ const hub=new ConversationHub(path.join(data,'aks.sqlite'),path.join(data,'conve
   if(conversation.startsWith('lab-argon-only-')){
    const plain=conversation.startsWith('lab-argon-only-plain-');
    const result=await argonApi(argonRequest({messages:[{role:'system',content:plain?'请用自然的中文回应用户。':personaPrompt(persona)},...history],max_tokens:2400}));
+   recordModel({provider:'apiyi',model:'gemini-4-argon',at:new Date().toISOString(),fallbackReason:null,...result._aksTransport});
    const reply=result?.choices?.[0]?.message?.content;
    if(typeof reply!=='string'||!reply.trim())throw Error('Argon test returned no text; no fallback was used');
    return reply.trim();
