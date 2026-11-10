@@ -1,0 +1,25 @@
+{
+  "version": "0.2.2",
+  "authority": "cloud",
+  "deployedAt": "2026-11-10T08:27:03Z",
+  "rollbackBackup": "/opt/aks/deploy-backups/release-0.2.2-20261110T082703Z",
+  "cloudHealthVerified": true,
+  "validation": {
+    "cloudTests": 71,
+    "passed": 70,
+    "newFailures": 0,
+    "preexistingFailures": [
+      "remaining daily allowance is paced, finite per window, and monthly meter remains binding"
+    ],
+    "liveStrictTest": {
+      "result": "provider-timeout",
+      "fallbackUsed": false,
+      "pageErrorVerified": true
+    }
+  },
+  "testPage": "http://127.0.0.1:6220/argon-test",
+  "strictProvider": "apiyi",
+  "strictModel": "gemini-4-argon",
+  "fallback": false,
+  "sourceBaseline": "d0bf54b"
+}

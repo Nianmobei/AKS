@@ -51,3 +51,7 @@ Argon 使用 API易 的 `gemini-4-argon` 和低思考档；单次请求 45 秒�
 费用记录增加 provider、model、cost_cny，Argon 根据供应商返回的 token 用量及保守汇率估算，失败请求保留预留费用作为未确认开销。原 DeepSeek 记录沿用既有估算；实际扣费以服务商账单为准。
 
 切回：将云端 `secrets/MODEL_ROUTES.json` 改为 `{"chatProvider":"deepseek"}` 并重启 `aks-aks-1`，无需修改或迁移人格、记忆和 AIRI。升级包的前序 Git 基线固定在 `scripts/release-bases.json`，提交后仍可重建相同升级逻辑。
+
+## 独立 Argon 测试（0.2.2）
+
+本机入口 `http://127.0.0.1:6220/argon-test`。选择纯模型或固定小A人格，使用独立 `lab-argon-only-*` 历史。云端在进入共同记忆、生活状态和工具流程前直接调用 Argon，不走模型路由或 DeepSeek 回退。没有正文读取与写入工具，也不读取共同记忆；测试消息仍持久化在云端，费用归主动聊天。请求失败会在测试页显示，45秒供应商超时不自动重试。

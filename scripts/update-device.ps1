@@ -19,11 +19,23 @@ if(-not $serverText.Contains("from './cloud-release-client.mjs'")){
   $serverText=$serverText.Replace($marker," if(req.url==='/release'&&req.method==='GET'){res.setHeader('Content-Type','application/json');res.end(JSON.stringify(await readCloudRelease()));return;}`n"+$marker)
 }
 $utf8=[Text.UTF8Encoding]::new($false)
+$sourceServer=[IO.File]::ReadAllText((Join-Path $sourceDir 'device-server.mjs'))
+foreach($endpoint in @('/argon-test','/argon-test/turn')){
+  $matchText="req.url==='"+$endpoint+"'"
+  if(-not $serverText.Contains($matchText)){
+    $routeLine=($sourceServer -split "`n" | Where-Object {$_.Contains($matchText)})
+    if(-not $routeLine){throw 'Argon route missing from source'}
+    $marker=if($endpoint -eq '/argon-test'){" if(req.url==='/'&&req.method==='GET')"}else{" if(req.url==='/companion'&&req.method==='GET')"}
+    if(-not $serverText.Contains($marker)){throw 'Argon route marker missing from installed bridge'}
+    $serverText=$serverText.Replace($marker,($routeLine.TrimEnd()+"`n"+$marker))
+  }
+}
 Copy-Item -LiteralPath $serverFile -Destination $backupDir
 Copy-Item -LiteralPath $deviceFile -Destination $backupDir
 Copy-Item -LiteralPath (Join-Path $sourceDir 'cloud-release-client.mjs') -Destination $clientDir
 [IO.File]::WriteAllText($serverFile,$serverText,$utf8)
 Copy-Item -LiteralPath (Join-Path $sourceDir 'device.html') -Destination $deviceFile
+Copy-Item -LiteralPath (Join-Path $sourceDir 'argon-test.html') -Destination $clientDir
 $nodePath=Join-Path $InstallRoot 'runtime\node.exe'
 & $nodePath --check $serverFile
 if($LASTEXITCODE -ne 0){Copy-Item -LiteralPath (Join-Path $backupDir 'device-server.mjs') -Destination $serverFile;throw 'Device syntax validation failed'}
