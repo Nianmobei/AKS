@@ -1,2 +1,2 @@
 export function voiceTerms(text){const s=String(text),terms=new Set(s.match(/[a-z]{3,}/gi)||[]);for(const part of s.match(/[\u4e00-\u9fff]+/g)||[])for(let i=0;i<part.length-1;i++)terms.add(part.slice(i,i+2));if(/你刚才|不是说|工具|做不到|答应|没做到|说过头|承诺/.test(s))for(const t of ['纠错','能力','承诺'])terms.add(t);if(/难过|不想做|累了|安慰|烦死/.test(s))terms.add('安慰');if(/反对|顺着我|不同意|你觉得/.test(s))terms.add('反对');return [...terms].slice(0,300);}
-export function voiceScore(row,terms){return terms.reduce((n,w)=>n+(row.tags.includes(w)?4:0)+(row.reason.includes(w)?2:0)+(row.original.includes(w)?1:0),0);}
+export function voiceScore(row,terms){return terms.reduce((n,w)=>n+((row.tags||'').includes(w)?4:0)+((row.guidance||row.reason||'').includes(w)?2:0)+((row.original||'').includes(w)?1:0),0);}

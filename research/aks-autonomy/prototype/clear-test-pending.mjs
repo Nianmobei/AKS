@@ -1,0 +1,1 @@
+import {DatabaseSync} from 'node:sqlite';const db=new DatabaseSync('C:/Users/linbowen/Documents/AKS-Windows-本地端/client/work-private/work.sqlite');const r=db.prepare('DELETE FROM desktop_route_pending WHERE id=1 AND text=?').run('那个事呢？');console.log(JSON.stringify({clearedTestPrompt:r.changes}));db.close();

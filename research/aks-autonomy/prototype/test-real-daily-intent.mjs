@@ -1,0 +1,4 @@
+import fs from 'node:fs/promises';import {randomUUID} from 'node:crypto';
+const token=(await fs.readFile('C:/Users/linbowen/Documents/AKS-Windows-本地端/client/cloud/secrets/LOCAL_CONVERSATION_TOKEN','utf8')).trim(), headers={Authorization:'Bearer '+token,'Content-Type':'application/json'};
+async function post(route,body,extra={}){const r=await fetch('http://127.0.0.1:6220'+route,{method:'POST',headers:{...headers,...extra},body:JSON.stringify(body),signal:AbortSignal.timeout(130000)});const j=await r.json();if(!r.ok)throw Error(JSON.stringify(j));return j}
+const id=randomUUID(),text='嗨小A，今天过得怎么样？';await post('/prepare-turn',{id,text});const r=await post('/v1/chat/completions',{messages:[{role:'user',content:text}]},{'x-airi-round-id':id});console.log(JSON.stringify({input:text,reply:r.choices[0].message.content}));

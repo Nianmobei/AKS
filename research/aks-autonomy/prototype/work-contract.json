@@ -1,0 +1,64 @@
+{
+  "protocol": "aks-work/1",
+  "base": "http://127.0.0.1:6220",
+  "status": {"method": "GET", "path": "/api/work/v1/status", "alias": "/api/work/capabilities", "auth": "public, isolation flags only"},
+  "auth": {
+    "header": "Authorization: Bearer <dedicated work token>",
+    "adapterEnvironment": "AKS_WORK_TOKEN_FILE",
+    "installedTokenFile": "C:/Users/linbowen/Documents/AKS-Windows-本地端/client/work-private/WORK_API_TOKEN",
+    "ownerTokenAccepted": false,
+    "allowedBrowserOrigins": ["http://127.0.0.1:4175", "http://127.0.0.1:6220"]
+  },
+  "turn": {
+    "method": "POST",
+    "path": "/api/work/v1/turn",
+    "request": {
+      "requestId": "stable-unique-id",
+      "projectId": "stable-project-id",
+      "sessionId": "quest-default",
+      "mode": "qa | requirements | audit",
+      "selection": {"kind": "npc | scene | scene-object | icon | project", "id": "stable-selected-id"},
+      "snapshotVersion": "revision-or-context-token",
+      "input": "question, maximum 4000 characters",
+      "context": {"selectedExcerpt": "only the relevant selected data, maximum 16000 characters"}
+    },
+    "response": {
+      "protocol": "aks-work/1",
+      "requestId": "same-request-id",
+      "namespace": "work:<sha256(projectId)[0:24]>:<sessionId>",
+      "snapshotVersion": "same-snapshot-version",
+      "answer": "reviewable response",
+      "suggestions": [{"id": "suggestion-1", "targetPath": "workbench-reviewed-path", "before": "original", "after": "proposed", "reason": "reason"}],
+      "focus": [],
+      "proposals": [],
+      "invalid": 0,
+      "memoryDomain": "work",
+      "applied": false
+    },
+    "idempotency": "same namespace/requestId/body reuses the result; changed body is HTTP409; interrupted requests never automatically rerun"
+  },
+  "memory": {
+    "list": "GET /api/work/v1/memory?projectId=...&sessionId=quest-default",
+    "save": "POST /api/work/v1/memory with {projectId,sessionId,confirmed:true,body}; maximum 120 characters; user confirmation required",
+    "clear": "DELETE /api/work/v1/memory with {projectId,sessionId,confirmed:true}",
+    "clearScope": "summaries-only; does not erase work transcripts or any daily data",
+    "storedSummariesPerSession": 8,
+    "retrievedSummariesPerTurn": 2,
+    "retrievedSummaryCharacters": 240,
+    "recentWorkTurnsStored": 20,
+    "recentWorkContextCharacters": 6000,
+    "retentionDays": 30,
+    "retentionCleanup": "on startup and work access",
+    "dailyInjection": "none; no cross-domain summary bridge is enabled"
+  },
+  "provider": {
+    "localConfiguration": "client/work-private/provider.json",
+    "inferenceEndpoint": "POST http://127.0.0.1:4175/inference",
+    "capabilitiesEndpoint": "GET http://127.0.0.1:4175/inference/capabilities",
+    "expectedCapabilities": {"protocol": "aks-work/1", "ready": true, "stateless": true, "memoryWrite": false},
+    "dedicatedInferenceTokenFile": "C:/Users/linbowen/Documents/Codex/2026-11-09/redkit-workbench/airi-gateway/private/inference-token",
+    "dailyFallback": false
+  },
+  "errors": {"503": "work_backend_not_configured or work_request_interrupted", "401": "work_authorization_required", "403": "work_origin_denied", "409": "work_request_id_conflict"},
+  "ownership": {"6220": "work isolation, scoped storage, model exit verification", "4175": "project snapshots, allowed field mapping, review, application, stale-draft protection"}
+}

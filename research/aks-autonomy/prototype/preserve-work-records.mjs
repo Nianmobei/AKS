@@ -1,0 +1,1 @@
+import fs from 'node:fs/promises';let f=process.argv[2],s=await fs.readFile(f,'utf8');const a=s.indexOf(' prune(namespace){'),b=s.indexOf('\n history(namespace)',a);if(a<0||b<0)throw Error('prune missing');s=s.slice(0,a)+' prune(namespace){}'+s.slice(b);await fs.writeFile(f,s);
