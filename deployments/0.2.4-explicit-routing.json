@@ -1,0 +1,31 @@
+{
+  "cloudVersion": "0.2.4",
+  "localPolicyVersion": 2,
+  "default": "daily",
+  "implicitModelClassification": false,
+  "legacyModeCleared": true,
+  "workDataCounts": {
+    "work_messages": {
+      "before": 32,
+      "after": 32
+    },
+    "work_requests": {
+      "before": 18,
+      "after": 18
+    },
+    "work_memory": {
+      "before": 1,
+      "after": 1
+    }
+  },
+  "testsPassed": 8,
+  "liveAcceptance": {
+    "input": "怎么突然进入工作模式了，我自己的项目不算工作啦",
+    "http": 200,
+    "cloudPrimary": true,
+    "actualProvider": "apiyi",
+    "actualModel": "gemini-4-argon",
+    "elapsedMs": 23535
+  },
+  "airiRestarted": false
+}
