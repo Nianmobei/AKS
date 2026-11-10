@@ -1,0 +1,33 @@
+{
+  "format": 1,
+  "capturedAt": "2026-11-10T10:40:16.770Z",
+  "bindingKeys": [
+    "__AKS_PRIVATE_BINDING_1__",
+    "__AKS_PRIVATE_BINDING_2__",
+    "__AKS_PRIVATE_BINDING_3__"
+  ],
+  "files": {
+    "client/argon-test.html": "f19aa2459b8497cb80fa00f704c8cbab69389eda35de499855dad51f3bb4b517",
+    "client/cloud-release-client.mjs": "3586501f102df0ccaa6bf32010cc70b08720c62453d6caaf9f6c345e057c94e3",
+    "client/companion.html": "1f434ac640a44e0a172b40aaea836aac99dc821a5e029974e17f31f863645e3c",
+    "client/conversation-client.mjs": "646460feca336d974b5261b3164fd1b3732843171acc8f5f395b86646bb3df86",
+    "client/desktop-route-policy.mjs": "cb277fc2f52c4cf174dd0e89887b7646c3b11d5b3ab1a92de49a73b1ddf102a4",
+    "client/desktop-work-router.mjs": "1dac52da61adf1c09b0f0222f10b6061e408f06f2cd35fd592d26be63436afa1",
+    "client/device-server.mjs": "b96172ffe06f06319748c6b8b7fce73dc5700d607e1871e7a2508c48626f1bff",
+    "client/device.html": "89013bc19a732875e3335d76b7eab899bebc431854956f767776e30e1b4fa078",
+    "client/init-device.mjs": "3a26dc75282a62665067fee11903c8ab01cfc07fd02285c6faa2b2cac66344c7",
+    "client/work-handoff.mjs": "c71c07d6402c29d82fe5c18ee2f380986cf79f31290894e5289e1806ae44c9cb",
+    "client/work-provider.mjs": "57c31c60972b70a6308d473d531d311129b6f27a672f6699b2a8fea7efc931ee",
+    "client/work-service.mjs": "6e11902ff9e4fec0124862b0017066f30a0b734368e9390e8d8d151cf4421131",
+    "start.ps1": "6ef6f01f4e78bec47a6c438a5052bd99865d757a05e36cb4fa03cda4d1b44020",
+    "airi-assets/gogh-runtime.js": "6c4606c9645e834cafbbd7d6e7d3a1eccdc9c0d59bfd002780afc46e1e9762db",
+    "airi-assets/gogh-ui.js": "36d4c860ffcd06414926ddf472088d3ee27c33a3371af3e2285a093b84e6e2d9",
+    "airi-assets/gogh-gaze.js": "a42ab9761faa658b68c67c7758d19d3b431fdfc50de15dc0424fe3c55fdd2da4",
+    "airi-assets/aks-shared-life.js": "eea1cf7490f5f701eeb8a91652a7d55c28291444be76d43f571be74345ad4f32",
+    "airi-assets/aks-cloud-device.js": "3b1cfd0ef6b39876fdb7b58ae342f0c29db67bbed5e5e3f4a8798526c9c2a222",
+    "airi-assets/aks-avatar-intent.js": "441b3d0c1175fd5e6e34d6105a80cc54c2e6189bef7c6ff298fb69aba47078b2",
+    "airi-assets/aks-companion-panel.js": "1fa087802ba24e84e25e19a06c3ca88377541357bc5383207d1504c4062add41",
+    "airi-assets/aks-work-launcher.js": "72f89eb080f6e5c5d4ffc2214dd302a4c36917cc9d6dcbc9e28d59703ff695c6",
+    "airi-assets/aks-cloud-route.js": "260e3fafcf22237f9ea019fef56f7254d7216242a25c982ab2fdc851bf02a17a"
+  }
+}

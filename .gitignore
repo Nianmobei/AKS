@@ -2,8 +2,11 @@ node_modules/
 .env
 .env.*
 secrets/
+work-private/
 data/
 backups/
+local-private/
+*.before-*
 *.sqlite*
 *.db
 *.key

@@ -1,0 +1,2 @@
+# Snapshot hashes refer to exact bytes, including the installed line endings.
+local-device/** -text -whitespace
