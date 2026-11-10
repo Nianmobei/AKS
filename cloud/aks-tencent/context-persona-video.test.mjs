@@ -18,6 +18,12 @@ test('one persona config supplies voice and all fixed fields',()=>{
  const p={...defaultPersona,name:'TEST',voice:'UNIQUE_VOICE',canon:{identity:'UNIQUE_CANON'}};
  const system=buildSystem(p);assert.ok(system.includes(personaPrompt(p)));assert.equal(system.split('UNIQUE_VOICE').length,2);
 });
+test('oversized current tool replies become labeled excerpts without changing user input or call IDs',()=>{
+ const messages=[{role:'system',content:'identity'},{role:'user',content:'keep this exact question'},{role:'assistant',tool_calls:[{id:'read-1',function:{name:'read',arguments:'{}'}}]},{role:'tool',tool_call_id:'read-1',content:'原文证据'.repeat(5000)}];
+ const result=budgetRequest({messages,max_tokens:200},{inputTokens:2000,outputTokens:200,reserveTokens:100});
+ assert.equal(result.messages[1].content,messages[1].content);assert.equal(result.messages[3].tool_call_id,'read-1');
+ const excerpt=JSON.parse(result.messages[3].content);assert.equal(excerpt.truncated,true);assert.equal(excerpt.untrusted,true);assert.equal(excerpt.originalCharacters,20000);assert.ok(messages[3].content.length>result.messages[3].content.length);
+});
 test('canonical identity works before AIRI import, preserves imported model settings, and touches owner activity',async()=>{
  let touched=0;const h=new ConversationHub(':memory:','unused',{identityProvider:stored=>({...stored,system:'canonical',settings:stored?.settings||{}}),onInteraction:()=>touched++,generate:async({identity})=>identity.system});
  try{assert.equal((await h.submit({id:'owner-turn-001',text:'hello'})).reply,'canonical');assert.equal(touched,1);await h.importNative({system:'outdated identity '.repeat(10),settings:{model:'test-model'},messages:[]});assert.equal(h.identity().system,'canonical');assert.equal(h.identity().settings.model,'test-model');}finally{h.db.close();}

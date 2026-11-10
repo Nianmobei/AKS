@@ -1,0 +1,41 @@
+{
+  "version": "0.2.1",
+  "authority": "cloud",
+  "deployedAt": "2026-11-10T08:11:36Z",
+  "cloudDirectory": "/opt/aks",
+  "cloudContainer": "aks-aks-1",
+  "cloudManifest": "/opt/aks/release-manifest.json",
+  "rollbackBackup": "/opt/aks/deploy-backups/release-0.2.1-20261110T080200Z",
+  "contextPatchBackup": "/opt/aks/deploy-backups/release-0.2.1-20261110T081136Z",
+  "cloudHealthVerified": true,
+  "policy": {
+    "chatProvider": "apiyi",
+    "chatModel": "gemini-4-argon",
+    "chatTimeoutMs": 45000,
+    "bulkModel": "deepseek-v4-pro",
+    "contextTokens": 24000,
+    "outputTokens": 2600,
+    "fallbackProvider": "deepseek",
+    "fallbackCooldownMs": 90000
+  },
+  "validation": {
+    "cloudTests": 71,
+    "passed": 70,
+    "newFailures": 0,
+    "preexistingFailures": [
+      "remaining daily allowance is paced, finite per window, and monthly meter remains binding"
+    ],
+    "localFocusedTestsPassed": 10,
+    "liveDialogueVerified": true,
+    "firstReplyElapsedMs": 23204,
+    "firstReplyEstimatedCny": 0.100544,
+    "toolReadingAuditVerified": true,
+    "finalFallbackObserved": false
+  },
+  "limitations": [
+    "Trial response required correction of a secondhand reading claim; fluent output does not guarantee accuracy.",
+    "QQ disconnected before and after deployment.",
+    "Video frame/audio processing is not implemented."
+  ],
+  "sourceBaseline": "e81c366f0e219de646f1c23ad4d9b27ee07fb6f6"
+}

@@ -4,7 +4,7 @@ ROOT=pathlib.Path('/opt/aks')
 CONTAINER='aks-aks-1'
 MODE=sys.argv[1] if len(sys.argv)>1 else 'check'
 assert MODE in ('check','apply')
-bundle=json.loads(gzip.decompress(pathlib.Path('/root/aks-cloud-0.2.0.json.gz').read_bytes()))
+bundle=json.loads(gzip.decompress(pathlib.Path('/root/aks-cloud-0.2.1.json.gz').read_bytes()))
 def merge(current,before,after,name):
     if current==after:return current
     if current==before:return after
@@ -15,13 +15,14 @@ def merge(current,before,after,name):
         find=''.join(old[first[1]:last[2]]);replace=''.join(new[first[3]:last[4]])
         if not find:
             index=first[1]
-            if index>0:find=old[index-1];replace=find+replace
-            elif old:find=old[0];replace=replace+find
+            if index>0 and current.count(old[index-1])==1:find=old[index-1];replace=find+replace
+            elif index<len(old) and current.count(old[index])==1:find=old[index];replace=replace+find
+            else:raise ValueError('Ambiguous insertion in '+name)
         if not find or current.count(find)!=1:raise ValueError('Cloud changes overlap '+name+' at source line '+str(first[1]+1))
         current=current.replace(find,replace,1)
     return current
 stamp=datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ')
-stage=ROOT/'releases'/('0.2.0-'+stamp);stage.mkdir(parents=True,exist_ok=False)
+stage=ROOT/'releases'/('0.2.1-'+stamp);stage.mkdir(parents=True,exist_ok=False)
 for f in ROOT.iterdir():
     if f.is_file() and f.suffix in ('.mjs','.json'):shutil.copy2(f,stage/f.name)
 changed=[];conflicts=[];before_hashes={}
@@ -66,7 +67,7 @@ for name,expected in before_hashes.items():
     f=ROOT/name;actual=hashlib.sha256(f.read_bytes()).hexdigest() if f.exists() else None
     assert actual==expected,'Cloud source changed during validation: '+name
 assert compose.read_text()==compose_before,'Compose changed during validation'
-backup=ROOT/'deploy-backups'/('release-0.2.0-'+stamp);backup.mkdir(parents=True)
+backup=ROOT/'deploy-backups'/('release-0.2.1-'+stamp);backup.mkdir(parents=True)
 shutil.copy2(compose,backup/'compose.yaml')
 if (ROOT/'release-manifest.json').exists():shutil.copy2(ROOT/'release-manifest.json',backup/'release-manifest.json')
 for name in changed:
