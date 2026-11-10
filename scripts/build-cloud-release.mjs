@@ -9,7 +9,7 @@ const pkg=JSON.parse(await fs.readFile(path.join(root,'cloud/aks-tencent/package
 if(pkg.version!==release.version)throw Error('Package/release version mismatch');
 const bases=JSON.parse(await fs.readFile(path.join(root,'scripts/release-bases.json'),'utf8'));
 const baseline=bases[release.version];if(!baseline)throw Error('Missing pinned upgrade baseline');
-const names=['server.mjs','conversation.mjs','conversation-hub.mjs','library.mjs','life.mjs','package.json','context-budget.mjs','persona-config.mjs','runtime-policy.mjs','release.json','video-reading.mjs','context-persona-video.test.mjs','release.test.mjs','budget-policy.mjs','model-router.mjs','model-router.test.mjs'];
+const names=['persona.json','server.mjs','conversation.mjs','conversation-hub.mjs','library.mjs','life.mjs','package.json','context-budget.mjs','persona-config.mjs','runtime-policy.mjs','release.json','video-reading.mjs','context-persona-video.test.mjs','release.test.mjs','budget-policy.mjs','model-router.mjs','model-router.test.mjs'];
 const files={};
 for(const name of names){const rel='cloud/aks-tencent/'+name;let before=null;try{before=execFileSync('git',['show',baseline+':'+rel],{cwd:root,encoding:'utf8',stdio:['ignore','pipe','ignore']}).replace(/\r\n/g,'\n');}catch{}files[name]={before,after:(await fs.readFile(path.join(root,rel),'utf8')).replace(/\r\n/g,'\n')};}
 const out=path.join(root,'dist');await fs.mkdir(out,{recursive:true});

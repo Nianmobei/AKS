@@ -6,14 +6,14 @@ test('only dialogue uses Argon; bulk processing and DeepSeek settings stay separ
  const calls=[],policy={chatProvider:'apiyi',chatModel:'gemini-4-argon',model:'deepseek-v4-pro'};
  const router=createModelRouter({policy,deepseek:async b=>{calls.push(['deepseek',b]);return {};},argon:async b=>{calls.push(['argon',b]);return {choices:[{message:{content:'回答'}}]};}});
  await router.complete({_aksTask:'dialogue',thinking:{type:'disabled'},messages:[]});await router.complete({model:'deepseek-flash',messages:[]});
- assert.equal(calls[0][0],'argon');assert.equal(calls[0][1].thinking,undefined);assert.equal(calls[0][1].reasoning_effort,'low');assert.equal(calls[1][0],'deepseek');assert.equal(calls[1][1].model,'deepseek-flash');
+ assert.equal(calls[0][0],'argon');assert.equal(calls[0][1].thinking,undefined);assert.equal(calls[0][1].reasoning_effort,'low');assert.equal(calls[1][0],'deepseek');assert.equal(calls[1][1].model,'deepseek-flash');assert.equal(router.status().lastDialogue.provider,'apiyi');
 });
 test('failed or empty Argon requests fall back from current tool state and cool down',async()=>{
  let now=1000,attempts=0;const seen=[];
  const r=createModelRouter({policy:{chatProvider:'apiyi',model:'deepseek-v4-pro'},clock:()=>now,argon:async()=>{attempts++;throw Error('private provider detail');},deepseek:async b=>{seen.push(b);return {choices:[{message:{content:'回退回答'}}]};}});
  const messages=[{role:'user',content:'问题'},{role:'assistant',tool_calls:[{id:'x'}]},{role:'tool',tool_call_id:'x',content:'已执行结果'}];
  await r.complete({_aksTask:'dialogue',messages});await r.complete({_aksTask:'dialogue',messages});assert.equal(attempts,1);assert.deepEqual(seen[0].messages,messages);
- now+=90001;await r.complete({_aksTask:'dialogue',messages});assert.equal(attempts,2);assert.equal(r.status().bulkProvider,'deepseek');
+ now+=90001;await r.complete({_aksTask:'dialogue',messages});assert.equal(attempts,2);assert.equal(r.status().bulkProvider,'deepseek');assert.equal(r.status().lastDialogue.provider,'deepseek');
 });
 test('provider costs are charged independently while legacy usage retains its original rate',()=>{
  const db=new DatabaseSync(':memory:');db.exec('CREATE TABLE usage(id INTEGER PRIMARY KEY,at TEXT,kind TEXT,input INTEGER,output INTEGER)');

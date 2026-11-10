@@ -1,0 +1,41 @@
+{
+  "version": "0.2.3",
+  "authority": "cloud",
+  "deployedAt": "2026-11-10T08:44:13Z",
+  "rollbackBackup": "/opt/aks/deploy-backups/release-0.2.3-20261110T084413Z",
+  "cloudHealthVerified": true,
+  "personaVersion": "2026-11-10.1",
+  "personaHash": "a91291c5e8b624c7f7e2d0871eeda72c6a69f1a8ba7a0895c0c79a6e6f48ab32",
+  "canonChanged": false,
+  "policy": {
+    "chatProvider": "apiyi",
+    "chatModel": "gemini-4-argon",
+    "chatTimeoutMs": 90000,
+    "bulkModel": "deepseek-v4-pro",
+    "fallback": "deepseek"
+  },
+  "validation": {
+    "cloudTests": 71,
+    "passed": 70,
+    "newFailures": 0,
+    "preexistingFailures": [
+      "remaining daily allowance is paced, finite per window, and monthly meter remains binding"
+    ],
+    "localFocusedTestsPassed": 10,
+    "bridgeNovelRead": {
+      "http": 200,
+      "elapsedMs": 97606,
+      "existingRevision": 3,
+      "actualProvider": "deepseek",
+      "reason": "Argon request timed out; fallback succeeded"
+    },
+    "strictArgonPersona": {
+      "http": 200,
+      "elapsedMs": 54635,
+      "fallbackUsed": false,
+      "backendMetaLanguageObserved": false,
+      "remainingIssue": "Response assumed solo travel without saved evidence; factual consistency still needs observation."
+    }
+  },
+  "sourceBaseline": "2a31f7b10f9973841014188b8cabd369f93c3ace"
+}
