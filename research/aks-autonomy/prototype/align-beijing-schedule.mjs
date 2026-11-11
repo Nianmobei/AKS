@@ -1,0 +1,3 @@
+import fs from 'node:fs/promises';
+for(const name of ['calendar.mjs','continuity-context.mjs','episodic-memory.mjs','library.mjs','life-simulation.mjs','reply-grounding.mjs','self-study.mjs','shared-life-context.mjs']){const f='cloud/aks-tencent/'+name;let s=await fs.readFile(f,'utf8');s=s.replaceAll('Europe/London','Asia/Shanghai').replaceAll('伦敦当地时间（自动夏令时）','北京时间').replaceAll('伦敦时间','北京时间').replaceAll('当前日期以伦敦为准','当前日期以北京时间为准').replaceAll('London day','Beijing day');await fs.writeFile(f,s)}
+const f='gogh-conversion/airi-integration/patch/aks-shared-life.js';let s=await fs.readFile(f,'utf8');s=s.replaceAll('Europe/London','Asia/Shanghai').replaceAll('当前日期以伦敦为准','当前日期以北京时间为准');await fs.writeFile(f,s);

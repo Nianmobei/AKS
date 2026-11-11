@@ -1,3 +1,4 @@
+import './aks-life-settings.js';
 // A settings shortcut only. It never reads credentials, chats or character stores.
 export function installWorkSettingsShortcut(){
  let scheduled=false;

@@ -33,7 +33,7 @@ export class Life {
    // Owner activity or disconnect while the model was generating defers delivery.
    if(!this.eligible())return {deferred:true};
    this.db.prepare("UPDATE life_shares SET status='send-uncertain' WHERE id=?").run(w.id);
-   await this.send(row.body);
+    await this.send(row.body,w.id);
    this.db.prepare("UPDATE life_shares SET status='sent',sent=? WHERE id=?").run(this.clock().toISOString(),w.id);return {sent:true,id:w.id};
   }catch(e){this.db.prepare("UPDATE life_shares SET error=?,status=CASE WHEN status='send-uncertain' THEN status ELSE 'failed' END WHERE id=?").run(e.message,w.id);return {failed:true,error:e.message};}
   finally{this.busy=false;this.db.prepare('DELETE FROM life_shares WHERE created<?').run(new Date(+this.clock()-30*86400000).toISOString());}

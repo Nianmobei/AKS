@@ -1,0 +1,1 @@
+import fs from 'node:fs/promises';const token=(await fs.readFile('C:/Users/linbowen/Documents/AKS-Windows-本地端/client/cloud/secrets/LOCAL_CONVERSATION_TOKEN','utf8')).trim();const r=await fetch('http://127.0.0.1:6220/sync-diagnostic',{headers:{Authorization:'Bearer '+token}});console.log(JSON.stringify(await r.json()));

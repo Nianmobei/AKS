@@ -1,0 +1,1 @@
+import fs from 'node:fs';const d='C:/Users/linbowen/AppData/Roaming/ai.moeru.airi/Local Storage/leveldb';for(const n of fs.readdirSync(d).filter(x=>/\.(log|ldb)$/.test(x))){const b=fs.readFileSync(d+'/'+n);for(const enc of ['utf8','utf16le']){const i=b.indexOf(Buffer.from('aks-cloud-owner-session',enc));if(i>=0)console.log(JSON.stringify({file:n,encoding:enc,present:true}));}}

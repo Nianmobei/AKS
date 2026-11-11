@@ -35,7 +35,7 @@ export class Library {
  novels(){if(!this.db.prepare("SELECT name FROM sqlite_master WHERE name='sim_artifacts'").get())return [];return this.db.prepare('SELECT work,revision,hash,reason,created,body FROM sim_artifacts ORDER BY revision DESC LIMIT 8').all();}
  async tick(){
   if(this.busy||!this.available()||!this.api)return {skipped:'owner-priority-or-unavailable'};
-  const now=this.clock(),day=now.toLocaleDateString('sv-SE',{timeZone:'Europe/London'}),hour=Number(new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/London',hour:'2-digit',hourCycle:'h23'}).format(now));
+  const now=this.clock(),day=now.toLocaleDateString('sv-SE',{timeZone:'Asia/Shanghai'}),hour=Number(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Shanghai',hour:'2-digit',hourCycle:'h23'}).format(now));
   if(hour<9||hour>=22)return {skipped:'sleep-window'};
   const attempt=String(Math.floor(+now/1800000));if(this.db.prepare('SELECT id FROM library_attempts WHERE id=?').get(attempt))return {skipped:'paced'};
   const budget=this.api.budget?.();if(budget&&budget.remaining<.25)return {skipped:'budget'};

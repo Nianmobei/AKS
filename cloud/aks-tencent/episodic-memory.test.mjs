@@ -26,7 +26,7 @@ test('source sync is idempotent and a planned action is not an archived episode'
  const m=new EpisodicMemory(':memory:');try{const study={notes:()=>[{id:'n',created:'2026-11-08T12:00:00Z',fact:'事实',opinion:'观点',fiction:'构思',sourceId:'s'}]},simulation={db:{prepare:()=>({all:()=>[]})},latestNovel:()=>null};m.sync(study,simulation);m.sync(study,simulation);assert.equal(m.status().archive,1);assert.equal(m.status().byKind[0].kind,'reading');}finally{m.close();}
 });
 
-test('relative dates use London calendar days across daylight saving transitions',()=>{
- const cases=[['2026-03-29T23:30:00Z','2026-03-30','2026-03-29','2026-03-28'],['2026-10-26T00:30:00Z','2026-10-26','2026-10-25','2026-10-24'],['2026-02-12T12:00:00Z','2026-02-12','2026-02-11','2026-02-10']];
+test('relative dates use Beijing calendar days across UTC midnight',()=>{
+ const cases=[['2026-11-10T17:00:00Z','2026-11-11','2026-11-10','2026-11-09'],['2026-10-26T00:30:00Z','2026-10-26','2026-10-25','2026-10-24'],['2026-02-12T12:00:00Z','2026-02-12','2026-02-11','2026-02-10']];
  for(const [clock,...days] of cases){const m=new EpisodicMemory(':memory:',{clock:()=>new Date(clock)});try{for(const day of days)m.add(record(day,day,{kind:'sim_episode',created:day+'T12:00:00Z'}));for(const [i,query] of ['今天做了什么','昨天做了什么','前天做了什么'].entries())assert.equal(m.recall(query,{touch:false}).records[0]?.sourceId,days[i],clock+' '+query);}finally{m.close();}}
 });

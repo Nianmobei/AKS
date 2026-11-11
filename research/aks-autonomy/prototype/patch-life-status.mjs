@@ -1,0 +1,1 @@
+import fs from 'node:fs/promises';let f='cloud/aks-tencent/server.mjs',s=await fs.readFile(f,'utf8');s=s.replace("deliveryAuthority:process.env.AKS_LIFE_DELIVERY==='1'", "deliveryAuthority:life.enabled(),deliveryChannel:'shared-desktop-history'");await fs.writeFile(f,s);

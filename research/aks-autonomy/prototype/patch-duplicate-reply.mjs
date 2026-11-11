@@ -1,0 +1,1 @@
+import fs from 'node:fs/promises';const f='cloud/aks-tencent/conversation-hub.mjs';let s=await fs.readFile(f,'utf8');s=s.replace('return {reply:prior.reply,model:', 'return {reply:visibleReply(prior.reply),model:');await fs.writeFile(f,s);

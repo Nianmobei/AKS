@@ -1,5 +1,5 @@
 import {localParts} from './calendar.mjs';
-export function activityEvidence({reading=[],routine=[],notes=[],now=new Date()}={}){const today=localParts(now,'Europe/London').date;const yesterday=new Date(Date.parse(today+'T12:00:00Z')-86400000).toISOString().slice(0,10);return {yesterday,reading:reading.filter(x=>x.day===yesterday),routine:routine.filter(x=>x.day===yesterday),notes:notes.filter(x=>x.created&&localParts(new Date(x.created),'Europe/London').date===yesterday)};}
+export function activityEvidence({reading=[],routine=[],notes=[],now=new Date()}={}){const today=localParts(now,'Asia/Shanghai').date;const yesterday=new Date(Date.parse(today+'T12:00:00Z')-86400000).toISOString().slice(0,10);return {yesterday,reading:reading.filter(x=>x.day===yesterday),routine:routine.filter(x=>x.day===yesterday),notes:notes.filter(x=>x.created&&localParts(new Date(x.created),'Asia/Shanghai').date===yesterday)};}
 export function unknownActivityReply(text,evidence){
  const asked=/昨天/.test(text)&&(/你.{0,12}(?:做|干|忙|在)/.test(text)||/昨天.{0,12}(?:做|干|忙)/.test(text));
  if(asked&&!evidence.reading.length&&!evidence.routine.length&&!evidence.notes.length)return '昨天没留下记录，我不临时给你编一天了。现在倒是想把小说往前挪一点。';

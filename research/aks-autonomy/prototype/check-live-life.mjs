@@ -1,0 +1,1 @@
+import fs from 'node:fs/promises';const token=(await fs.readFile('C:/Users/linbowen/Documents/AKS-Windows-本地端/client/cloud/secrets/LOCAL_CONVERSATION_TOKEN','utf8')).trim();const r=await fetch('http://127.0.0.1:6220/life',{headers:{Authorization:'Bearer '+token},signal:AbortSignal.timeout(30000)});const d=await r.json();console.log(JSON.stringify(d));

@@ -1,0 +1,1 @@
+import fs from 'node:fs/promises';const token=(await fs.readFile('C:/Users/linbowen/Documents/AKS-Windows-本地端/client/cloud/secrets/LOCAL_CONVERSATION_TOKEN','utf8')).trim();for(const p of ['/native-status','/model-status']){let r=await fetch('http://127.0.0.1:6220'+p,{headers:{Authorization:'Bearer '+token}});let d=await r.json();console.log(JSON.stringify({route:p,status:d}));}

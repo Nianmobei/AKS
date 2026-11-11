@@ -26,9 +26,9 @@ export class EpisodicMemory {
  }
  recall(query,{maxChars=1200,limit=5,touch=true}={}){
   const now=this.clock(),q=tokens(query);let targetDay=null;
-  if(/今天|昨天|前天/.test(query)){const offset=/前天/.test(query)?2:/昨天/.test(query)?1:0;const today=localParts(now,'Europe/London').date;const day=new Date(today+'T00:00:00Z');day.setUTCDate(day.getUTCDate()-offset);targetDay=day.toISOString().slice(0,10);}
+  if(/今天|昨天|前天/.test(query)){const offset=/前天/.test(query)?2:/昨天/.test(query)?1:0;const today=localParts(now,'Asia/Shanghai').date;const day=new Date(today+'T00:00:00Z');day.setUTCDate(day.getUTCDate()-offset);targetDay=day.toISOString().slice(0,10);}
   const records=this.db.prepare('SELECT a.*,r.last_at,r.count FROM episodic_archive a LEFT JOIN episodic_recall r ON r.id=a.id').all();
-  const ranked=records.map(r=>{const age=Math.max(0,(+now-Date.parse(r.last_at||r.created))/86400000),words=tokens(r.body),hits=[...q].filter(t=>words.has(t)).length,day=localParts(new Date(r.created),'Europe/London').date;
+  const ranked=records.map(r=>{const age=Math.max(0,(+now-Date.parse(r.last_at||r.created))/86400000),words=tokens(r.body),hits=[...q].filter(t=>words.has(t)).length,day=localParts(new Date(r.created),'Asia/Shanghai').date;
    const dated=targetDay&&day===targetDay;const score=(r.pinned?80:0)+hits*18+(dated?120:0)+r.importance/(1+age/10);
    return {...r,clarity:memoryClarity(age,!!r.pinned),score,hits,dated};
   }).filter(r=>r.pinned||(!targetDay&&r.hits>0)||(targetDay&&r.dated)).sort((a,b)=>b.score-a.score||b.created.localeCompare(a.created));

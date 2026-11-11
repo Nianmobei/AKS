@@ -1,9 +1,10 @@
 import {DatabaseSync} from 'node:sqlite';
 import {createHash,randomUUID} from 'node:crypto';
-import {localParts} from './calendar.mjs';
+import {localParts,dayContext} from './calendar.mjs';
 import {modelJson} from './model-json.mjs';
 const forModel=novel=>!novel?null:novel.body.length<=6000?novel:{work:novel.work,revision:novel.revision,hash:novel.hash,created:novel.created,bodyHead:novel.body.slice(0,1000),bodyTail:novel.body.slice(-4500),middleOmitted:true};
-const kinds=new Set(['walk','read','write','revise']);
+const kinds=new Set(['walk','read','write','revise','film']);
+export function scheduledKinds(now){const day=dayContext(now),id=day.current.id;if(id==='reading')return ['read'];if(id==='film')return ['film','read'];if(id==='writing')return ['write','revise'];if(id==='guitar')return ['walk','read'];if(id==='theme'){if(day.theme==='电影')return ['film','read'];if(day.theme==='小说修订')return ['write','revise'];return ['read','walk'];}return [];}
 const hash=text=>createHash('sha256').update(text).digest('hex');
 export function budgetPhase(now,cap=10){
  const date=localParts(now,'Asia/Shanghai').date,startDate='2026-11-08';
@@ -36,20 +37,26 @@ export class LifeSimulation {
  }
  async plan(){
   if(this.active())return {skipped:'already-active'};
+  let allowed=scheduledKinds(this.clock());if(!allowed.length)return {skipped:'no-scheduled-activity'};
   const notes=this.study.notes(12);if(!notes.length)return {skipped:'accumulate-reading-first'};
   const now=this.clock(),novel=this.latestNovel();
+  if(novel&&localParts(new Date(novel.created),'Asia/Shanghai').date===localParts(now,'Asia/Shanghai').date)allowed=allowed.filter(k=>k!=='write'&&k!=='revise');
+  if(!notes.some(n=>/film|cinema|movie|电影|影片|导演/i.test(JSON.stringify(n))))allowed=allowed.filter(k=>k!=='film');
+  if(!allowed.length)return {skipped:'no-eligible-scheduled-action'};
   const attempt=String(Math.floor(+now/(15*60000)));
   if(!this.db.prepare('INSERT OR IGNORE INTO sim_plan_attempts VALUES(?,?)').run(attempt,now.toISOString()).changes)return {skipped:'plan-attempt-paced'};
-  const result=await this.model('先从已积累的一条阅读笔记形成一个想法，再安排一个行动。返回JSON {noteId,title,reason,kind:walk或read或write或revise,durationMinutes:30到120,steps:[具体小步骤]}。步骤1到4项。walk只模拟行走，不把小说情节写成真实路遇。write只为同一部长期小说写初稿或小段续写；revise必须已有稿。一天最多一个小说版本，今天已写过就选read或walk。不安排外部发消息或发布。',{notes,now:now.toISOString(),recentReflections:this.reflections(),currentNovel:forModel(novel),recentActions:this.context().recentCompleted});
+  const result=await this.model('先从已积累的一条阅读笔记形成一个想法，再安排符合当前日程的行动，kind必须属于allowedKinds。返回JSON {noteId,title,reason,kind,durationMinutes:30到120,steps:[具体小步骤]}。步骤1到4项。walk只模拟行走，不把小说情节写成真实路遇。film只阅读已有电影资料并记录看法，不声称真实播放或看完全片。write只为同一部长期小说写初稿或续写；revise必须已有稿。一天最多一个小说版本。不安排外部发消息或发布。',{allowedKinds:allowed.filter(k=>k!=='revise'||novel),schedule:dayContext(now).current,notes,now:now.toISOString(),recentReflections:this.reflections(),currentNovel:forModel(novel),recentActions:this.context().recentCompleted});
   if(!notes.some(n=>n.id===result.noteId)||!kinds.has(result.kind)||typeof result.title!=='string'||!result.title.trim()||result.title.length>100||typeof result.reason!=='string'||result.reason.length<8||result.reason.length>600||!Number.isFinite(result.durationMinutes)||result.durationMinutes<30||result.durationMinutes>120||!Array.isArray(result.steps)||!result.steps.length||result.steps.length>4||result.steps.some(s=>typeof s!=='string'||s.length>250))throw Error('Invalid simulation plan');
   if(result.kind==='revise'&&!novel)throw Error('Cannot revise an unwritten novel');
+  if(!allowed.includes(result.kind))throw Error('Action is outside current schedule');
+  if(result.kind==='film'&&!/film|cinema|movie|电影|影片|导演/i.test(JSON.stringify(notes.find(n=>n.id===result.noteId))))throw Error('Film action requires a relevant reading note');
   const idea=randomUUID(),action=randomUUID();this.db.exec('BEGIN IMMEDIATE');
   try{this.db.prepare('INSERT INTO sim_ideas VALUES(?,?,?,?,?)').run(idea,result.noteId,result.title,result.reason,now.toISOString());this.db.prepare("INSERT INTO sim_actions VALUES(?,?,?,'planned',?,?,NULL,NULL,NULL,NULL,NULL)").run(action,idea,result.kind,JSON.stringify(result),now.toISOString());this.db.exec('COMMIT');}catch(e){this.db.exec('ROLLBACK');throw e;}
   return {planned:true,id:action,ideaId:idea};
  }
- start(){const a=this.active();if(!a||a.state!=='planned')return {skipped:'no-plan'};const now=this.clock(),p=JSON.parse(a.plan),time=localParts(now,'Europe/London').minute;if(time<510||time+p.durationMinutes>23*60)return {skipped:'resume-in-waking-hours'};this.db.prepare("UPDATE sim_actions SET state='in_progress',started=?,due=? WHERE id=? AND state='planned'").run(now.toISOString(),new Date(+now+p.durationMinutes*60000).toISOString(),a.id);return {started:true,id:a.id,durationMinutes:p.durationMinutes};}
+ start(){const a=this.active();if(!a||a.state!=='planned')return {skipped:'no-plan'};const now=this.clock(),p=JSON.parse(a.plan),time=localParts(now,'Asia/Shanghai').minute;if(time<510||time+p.durationMinutes>23*60)return {skipped:'resume-in-waking-hours'};this.db.prepare("UPDATE sim_actions SET state='in_progress',started=?,due=? WHERE id=? AND state='planned'").run(now.toISOString(),new Date(+now+p.durationMinutes*60000).toISOString(),a.id);return {started:true,id:a.id,durationMinutes:p.durationMinutes};}
  pauseActive(reason){const a=this.active();if(!a||a.state!=='in_progress')return {skipped:'no-running-action'};this.db.prepare("UPDATE sim_actions SET state='paused',error=? WHERE id=?").run(JSON.stringify({code:'paused',reason,at:this.clock().toISOString(),remainingMs:Math.max(0,Date.parse(a.due)-+this.clock())}),a.id);return {paused:true,id:a.id};}
- resumePaused(){if(this.active())return null;const a=this.db.prepare("SELECT * FROM sim_actions WHERE state='paused' ORDER BY started LIMIT 1").get();if(!a)return null;const paused=JSON.parse(a.error);if(paused.code!=='paused'||!Number.isFinite(paused.remainingMs)||paused.remainingMs<0||paused.remainingMs>120*60000)throw Error('Invalid paused action');const now=this.clock(),time=localParts(now,'Europe/London').minute;if(time+paused.remainingMs/60000>23*60)return {skipped:'resume-in-waking-hours'};this.db.prepare("UPDATE sim_actions SET state='in_progress',due=?,error=NULL WHERE id=? AND state='paused'").run(new Date(+now+paused.remainingMs).toISOString(),a.id);return {resumed:true,id:a.id,remainingMs:paused.remainingMs};}
+ resumePaused(){if(this.active())return null;const a=this.db.prepare("SELECT * FROM sim_actions WHERE state='paused' ORDER BY started LIMIT 1").get();if(!a)return null;const paused=JSON.parse(a.error);if(paused.code!=='paused'||!Number.isFinite(paused.remainingMs)||paused.remainingMs<0||paused.remainingMs>120*60000)throw Error('Invalid paused action');const now=this.clock(),time=localParts(now,'Asia/Shanghai').minute;if(time+paused.remainingMs/60000>23*60)return {skipped:'resume-in-waking-hours'};this.db.prepare("UPDATE sim_actions SET state='in_progress',due=?,error=NULL WHERE id=? AND state='paused'").run(new Date(+now+paused.remainingMs).toISOString(),a.id);return {resumed:true,id:a.id,remainingMs:paused.remainingMs};}
  commitResult(a,result){
   const now=this.clock(),current=this.db.prepare('SELECT * FROM sim_actions WHERE id=?').get(a.id);
   if(current?.state!=='in_progress'||+now<Date.parse(current.due))throw Error('Cannot complete before elapsed time');
@@ -62,7 +69,7 @@ export class LifeSimulation {
    if(art.operation==='append')manuscript=(novel?.body||'')+(novel?'\n':'')+art.body;else if(art.operation==='replace_excerpt'){if(!novel||typeof art.oldText!=='string'||!art.oldText||novel.body.split(art.oldText).length!==2)throw Error('Revision excerpt must match exactly once');manuscript=novel.body.replace(art.oldText,art.body);}else if(art.operation&&art.operation!=='replace')throw Error('Unsupported manuscript operation');
    if(manuscript.length>300000)throw Error('Manuscript storage limit');
    if(novel&&hash(manuscript)===novel.hash)throw Error('Unchanged draft is not a revision');
-   if(novel&&localParts(new Date(novel.created),'Europe/London').date===localParts(now,'Europe/London').date)throw Error('At most one novel version per London day');
+   if(novel&&localParts(new Date(novel.created),'Asia/Shanghai').date===localParts(now,'Asia/Shanghai').date)throw Error('At most one novel version per Beijing day');
   }else if(art)throw Error('Non-writing action cannot replace novel');
   this.db.exec('BEGIN IMMEDIATE');try{
    if(isWriting)this.db.prepare('INSERT INTO sim_artifacts VALUES(?,?,?,?,?,?,?,?)').run('aks-novel',(novel?.revision||0)+1,novel?.hash||null,hash(manuscript),manuscript,art.reason,now.toISOString(),a.id);
@@ -76,15 +83,15 @@ export class LifeSimulation {
   if(lastAttempt?.state==='retry'&&+this.clock()-Date.parse(lastAttempt.at)<5*60000)return {skipped:'format-retry-cooldown'};
   const attempt=(lastAttempt?.attempt||0)+1;
   const novel=this.latestNovel();
-  if(['write','revise'].includes(a.kind)&&novel&&localParts(new Date(novel.created),'Europe/London').date===localParts(this.clock(),'Europe/London').date)return {skipped:'novel-rests-until-next-day'};
+  if(['write','revise'].includes(a.kind)&&novel&&localParts(new Date(novel.created),'Asia/Shanghai').date===localParts(this.clock(),'Asia/Shanghai').date)return {skipped:'novel-rests-until-next-day'};
   const plan=JSON.parse(a.plan),note=this.study.note?this.study.note(plan.noteId):this.study.notes(100).find(n=>n.id===plan.noteId);
   if(!note)throw Error('Action source note unavailable');
-  try{const result=await this.model('行动的模拟时间已过去，现在写下这一步真正留下的角色模拟记录。episode只写60到160字，reflection40到100字。初稿正文500到1000字，续写或修改每轮只处理200到1000字。artifact.operation初稿用replace，有稿后write用append，revise用replace_excerpt并提供与既有稿完全相同且唯一的oldText；不要重新输出整篇小说。返回JSON {episode:有限具体的模拟经过,reflection:未解决的问题或新想法,artifact:null或{operation:replace或append或replace_excerpt,oldText:replace_excerpt时的唯一原文否则null,body:本轮新增或替换的局部正文,parentHash:已有稿hash或null,reason:本次修改的具体原因}}。只有write/revise才返回artifact。walk/read不生造出版物或成果。没有达到计划可承认卡住，不夸大完成。小说每轮只做小步，保留既有角色和情节；不另起一部新小说。',{plan,sourceNote:note,previousNovel:forModel(novel),started:a.started,due:a.due,now:this.clock().toISOString()},4000);const committed=this.commitResult(a,result);this.db.prepare('INSERT INTO sim_action_attempts VALUES(?,?,?,?,?,?)').run(a.id,attempt,this.clock().toISOString(),'committed',null,this.lastModelRaw||null);return committed;}
+  try{const result=await this.model('行动的模拟时间已过去，现在写下这一步真正留下的角色模拟记录。episode只写60到160字，reflection40到100字。初稿正文500到1000字，续写或修改每轮只处理200到1000字。artifact.operation初稿用replace，有稿后write用append，revise用replace_excerpt并提供与既有稿完全相同且唯一的oldText；不要重新输出整篇小说。返回JSON {episode:有限具体的模拟经过,reflection:未解决的问题或新想法,artifact:null或{operation:replace或append或replace_excerpt,oldText:replace_excerpt时的唯一原文否则null,body:本轮新增或替换的局部正文,parentHash:已有稿hash或null,reason:本次修改的具体原因}}。只有write/revise才返回artifact。walk/read不生造出版物或成果；film只依据资料谈电影，不声称实际观看全片。没有达到计划可承认卡住，不夸大完成。小说每轮只做小步，保留既有角色和情节；不另起一部新小说。',{plan,sourceNote:note,previousNovel:forModel(novel),started:a.started,due:a.due,now:this.clock().toISOString()},4000);const committed=this.commitResult(a,result);this.db.prepare('INSERT INTO sim_action_attempts VALUES(?,?,?,?,?,?)').run(a.id,attempt,this.clock().toISOString(),'committed',null,this.lastModelRaw||null);return committed;}
   catch(e){if(!/budget/i.test(e.message)){const retry=e.code==='AKS_MODEL_JSON'&&attempt<3;this.db.prepare('INSERT INTO sim_action_attempts VALUES(?,?,?,?,?,?)').run(a.id,attempt,this.clock().toISOString(),retry?'retry':'blocked',e.message,e.raw||this.lastModelRaw||null);if(retry)return {deferred:true,reason:'format-retry-cooldown',attempt};this.db.prepare("UPDATE sim_actions SET state='blocked',error=? WHERE id=? AND state='in_progress'").run(e.message,a.id);}throw e;}
  }
  async tick(){
   if(this.busy||!this.available())return {skipped:'owner-priority-or-busy'};
-  const time=localParts(this.clock(),'Europe/London').minute;if(time<510||time>=23*60)return {skipped:'sleep-window'};
+  const time=localParts(this.clock(),'Asia/Shanghai').minute;if(time<510||time>=23*60)return {skipped:'sleep-window'};
   this.busy=true;try{
    let a=this.active(),step;
    if(a?.state==='in_progress')step=await this.finish(a);
@@ -95,11 +102,12 @@ export class LifeSimulation {
  }
  async useRemainder(){
   if(!this.available()||!this.api.budget)return {skipped:'owner-priority-or-no-meter'};
+  if(!['reading','film','theme'].includes(dayContext(this.clock()).current.id))return {skipped:'outside-reading-schedule'};
   const b=this.api.budget(),now=this.clock(),p=localParts(now,'Asia/Shanghai');
   const target=spendingTarget(now,b.dayLimit);
   if(b.used>=target||b.remaining<.1)return {skipped:'paced-budget',used:b.used,target};
   // Final ten minutes get one bounded check per minute; persisted keys prevent replay after restart.
-  const key=p.date+':'+(p.minute>=1430?'midnight-'+p.minute:Math.floor(p.minute/10));
+  const key=p.date+':'+Math.floor(p.minute/60);
   if(!this.db.prepare('INSERT OR IGNORE INTO sim_budget_ticks VALUES(?,?,NULL)').run(key,now.toISOString()).changes)return {skipped:'already-processed-window'};
   try{let result;
    if(b.remaining<.55){const notes=this.study.notes(3);if(!notes.length)return {skipped:'no-material-to-process'};

@@ -1,0 +1,1 @@
+import {showLifeNotification} from './desktop-life-notifier.mjs';const c=await showLifeNotification('这是一条提醒测试：之后小 A 的主动分享会从这里出现。');const code=await new Promise((resolve,reject)=>{c.on('error',reject);c.on('close',resolve)});console.log(JSON.stringify({notificationProcessExit:code}));if(code!==0)process.exitCode=1;

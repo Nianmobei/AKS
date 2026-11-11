@@ -1,0 +1,1 @@
+import {readAiriState} from 'file:///C:/Users/linbowen/.codex/visualizations/2026/11/09/01a1be0d-86c3-7a92-ab12-82780f7c244f/read-airi-state.mjs';const s=readAiriState();console.log(JSON.stringify({bindingStored:[...s.keys()].some(k=>k.startsWith('aks-cloud-owner-session:')),activeCardPresent:!!s.get('airi-card-active-id')}));
